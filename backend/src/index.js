@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import paymentsRouter from "./routes/payments.js";
+import testRouter from "./routes/test.js";
 
 dotenv.config();
 
@@ -10,6 +11,8 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/payments", paymentsRouter);
+
+app.use("/test", testRouter);
 
 app.get("/", (req, res) => {
   res.send("Lawyer API is running 🚀");

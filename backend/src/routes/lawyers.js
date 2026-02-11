@@ -1,4 +1,6 @@
 import express from "express";
+import { authenticate } from "../middleware/auth.js";
+import { requireRole } from "../middleware/roles.js";
 import {
   createLawyerProfile,
   listAvailableLawyers
@@ -6,7 +8,7 @@ import {
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
+router.post("/", authenticate, requireRole("lawyer"), async (req, res) => {
   const { lawyerId, userId, specialties, hourlyRate, bio } = req.body;
 
   if (!lawyerId || !userId) {

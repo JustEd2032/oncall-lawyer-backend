@@ -1,9 +1,10 @@
 import express from "express";
 import { createUser, getUser } from "../services/users.js";
+import { authenticate } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
+router.post("/", authenticate, async (req, res) => {
   const { userId, email, role, name, phone } = req.body;
 
   if (!userId || !email || !role) {

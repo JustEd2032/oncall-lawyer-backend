@@ -7,6 +7,7 @@ import userRoutes from "./routes/users.js";
 import lawyerRoutes from "./routes/lawyers.js";
 import appointmentRoutes from "./routes/appointments.js";
 import paymentConfirmRoutes from "./routes/payments-confirm.js";
+import webhookRoutes from "./routes/webhooks.js";
 
 dotenv.config();
 

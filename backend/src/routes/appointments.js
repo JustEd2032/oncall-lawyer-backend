@@ -1,4 +1,5 @@
 import express from "express";
+import { authenticate } from "../middleware/auth.js";
 import {
   createAppointment,
   updateAppointmentStatus,
@@ -7,7 +8,7 @@ import {
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
+router.post("/", authenticate,async (req, res) => {
   const { clientId, lawyerId, scheduledAt, paymentIntentId } = req.body;
 
   if (!clientId || !lawyerId || !scheduledAt) {

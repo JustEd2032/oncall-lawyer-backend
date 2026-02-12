@@ -1,1 +1,1 @@
-Test project for an oncall lawyer service this is the backend
+On-call lawyer service fullstack solution

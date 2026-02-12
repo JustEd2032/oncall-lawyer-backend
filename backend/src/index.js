@@ -8,7 +8,7 @@ import lawyerRoutes from "./routes/lawyers.js";
 import appointmentRoutes from "./routes/appointments.js";
 import paymentConfirmRoutes from "./routes/payments-confirm.js";
 import webhookRoutes from "./routes/webhooks.js";
-
+import { authenticate } from "./middleware/auth.js";
 
 const app = express();
 app.use(cors({
@@ -32,6 +32,12 @@ app.use("/webhooks", webhookRoutes);
 
 app.use(express.json());
 
+app.get("/protected", authenticate, (req, res) => {
+  res.json({
+    message: "You are authenticated",
+    user: req.user,
+  });
+});
 
 app.get("/", (req, res) => {
   res.send("Lawyer API is running 🚀");

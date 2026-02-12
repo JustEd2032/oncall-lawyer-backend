@@ -1,6 +1,6 @@
+import "./config/env.js";
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import paymentsRouter from "./routes/payments.js";
 import testRouter from "./routes/test.js";
 import userRoutes from "./routes/users.js";
@@ -9,10 +9,11 @@ import appointmentRoutes from "./routes/appointments.js";
 import paymentConfirmRoutes from "./routes/payments-confirm.js";
 import webhookRoutes from "./routes/webhooks.js";
 
-dotenv.config();
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5173"
+}));
 app.use(express.json());
 
 app.use("/payments", paymentsRouter);

@@ -8,6 +8,11 @@ router.post("/", authenticate, async (req, res) => {
   const userId = req.user.uid;
   const email = req.user.email;
   const { role, name, phone } = req.body;
+  const existingUser = await getUser(userId);
+
+  if (existingUser) {
+    return res.json(existingUser);
+  }
 
   if (!userId || !email || !role) {
     return res.status(400).json({ error: "Missing fields" });
@@ -17,7 +22,8 @@ router.post("/", authenticate, async (req, res) => {
     email,
     role,
     name,
-    phone
+    phone,
+    createdAt: new Date()
   });
 
   res.json(user);

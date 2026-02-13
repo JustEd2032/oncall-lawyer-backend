@@ -8,26 +8,42 @@ function Login() {
   const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
-    try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+  try {
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
 
-      const token = await userCredential.user.getIdToken();
+      const user = userCredential.user;
 
-      console.log("Firebase ID Token:", token);
+    // 🔥 Get Firebase token
+    const token = await user.getIdToken();
 
-      // 🔥 Send token to backend
-      const response = await axios.get(
-        "http://localhost:8080/protected",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+    // 🔥 Sync user profile with backend
+    await axios.post(
+      "http://localhost:8080/users",
+      {}, // send empty body for login
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    await user.getIdToken(true);
+
+    console.log("User synced successfully");
+
+    // OPTIONAL: test protected route
+    const response = await axios.get(
+      "http://localhost:8080/protected",
+      {
+        headers: {
+          Authorization: `Bearer ${await user.getIdToken()}`,
+        },
+      }
+    );
 
       console.log("Backend response:", response.data);
     } catch (error) {

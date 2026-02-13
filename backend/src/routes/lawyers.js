@@ -9,7 +9,8 @@ import {
 const router = express.Router();
 
 router.post("/", authenticate, requireRole("lawyer"), async (req, res) => {
-  const { lawyerId, userId, specialties, hourlyRate, bio } = req.body;
+  const userId = req.user.uid;
+  const { lawyerId, specialties, hourlyRate, bio } = req.body;
 
   if (!lawyerId || !userId) {
     return res.status(400).json({ error: "Missing fields" });

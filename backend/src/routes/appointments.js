@@ -8,8 +8,9 @@ import {
 
 const router = express.Router();
 
-router.post("/", authenticate,async (req, res) => {
-  const { clientId, lawyerId, scheduledAt, paymentIntentId } = req.body;
+router.post("/", authenticate, async (req, res) => {
+  const clientId = req.user.uid;
+  const { lawyerId, scheduledAt, paymentIntentId } = req.body;
 
   if (!clientId || !lawyerId || !scheduledAt) {
     return res.status(400).json({ error: "Missing fields" });
@@ -25,13 +26,17 @@ router.post("/", authenticate,async (req, res) => {
   res.json(appointment);
 });
 
-router.patch("/:id/status", async (req, res) => {
+router.patch("/:id/status", authenticate, async (req, res) => {
   const { status } = req.body;
   await updateAppointmentStatus(req.params.id, status);
   res.json({ success: true });
 });
 
-router.get("/user/:id", async (req, res) => {
+router.get("/user/:id", authenticate, async (req, res) => {
+  if (req.user.uid !== req.params.id) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+
   const appointments = await getAppointmentsByUser(req.params.id);
   res.json(appointments);
 });

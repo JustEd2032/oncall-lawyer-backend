@@ -1,11 +1,12 @@
 import express from "express";
 import Stripe from "stripe";
 import { updateAppointmentStatus } from "../services/appointments.js";
+import { authenticate } from "../middleware/auth.js";
 
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-router.post("/confirm", async (req, res) => {
+router.post("/confirm", authenticate, async (req, res) => {
   const { paymentIntentId, appointmentId } = req.body;
 
   const intent = await stripe.paymentIntents.retrieve(paymentIntentId);

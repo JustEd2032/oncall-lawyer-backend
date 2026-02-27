@@ -1,32 +1,34 @@
 import express from "express";
 import { createUser, getUser } from "../services/users.js";
 import { authenticate } from "../middleware/auth.js";
+import admin from "firebase-admin";
 
 const router = express.Router();
 
 router.post("/", authenticate, async (req, res) => {
   const userId = req.user.uid;
   const email = req.user.email;
-  const { role, name, phone } = req.body;
+
   const existingUser = await getUser(userId);
 
+  // ✅ If user already exists, just return it
   if (existingUser) {
     return res.json(existingUser);
   }
 
-  if (!userId || !email || !role) {
-    return res.status(400).json({ error: "Missing fields" });
-  }
-
-  const user = await createUser(userId, {
+  // ✅ Create new user with default role
+  const newUser = await createUser(userId, {
     email,
-    role,
-    name,
-    phone,
+    role: "client", // default role
     createdAt: new Date()
   });
 
-  res.json(user);
+  // ✅ Set Firebase custom claim
+  await admin.auth().setCustomUserClaims(userId, {
+    role: "client"
+  });
+
+  res.json(newUser);
 });
 
 router.get("/:id", authenticate, async (req, res) => {

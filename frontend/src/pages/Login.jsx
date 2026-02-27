@@ -15,7 +15,7 @@ function Login() {
       password
     );
 
-      const user = userCredential.user;
+    const user = userCredential.user;
 
     // 🔥 Get Firebase token
     const token = await user.getIdToken();
@@ -31,6 +31,7 @@ function Login() {
       }
     );
 
+    // 🔥 Force refresh token (important if backend sets custom claims)
     await user.getIdToken(true);
 
     console.log("User synced successfully");
@@ -45,11 +46,15 @@ function Login() {
       }
     );
 
-      console.log("Backend response:", response.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+    console.log("Backend response:", response.data);
+
+  } catch (error) {
+  console.error("Error code:", error.code);
+  console.error("Error message:", error.message);
+  }
+  
+};
+
 
   return (
     <div>

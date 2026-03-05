@@ -10,13 +10,9 @@ const router = express.Router();
 
 router.post("/", authenticate, requireRole("lawyer"), async (req, res) => {
   const userId = req.user.uid;
-  const { lawyerId, specialties, hourlyRate, bio } = req.body;
+  const { specialties, hourlyRate, bio } = req.body;  // lawyerId removed from body
 
-  if (!lawyerId || !userId) {
-    return res.status(400).json({ error: "Missing fields" });
-  }
-
-  const lawyer = await createLawyerProfile(lawyerId, {
+  const lawyer = await createLawyerProfile(userId, {  // use verified uid instead
     userId,
     specialties,
     hourlyRate,

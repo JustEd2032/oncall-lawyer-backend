@@ -1,12 +1,7 @@
 import admin from "firebase-admin";
-import fs from "fs";
 
-const serviceAccount = JSON.parse(
-  fs.readFileSync("serviceAccountKey.json", "utf8")
-);
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
+if (!admin.apps.length) {
+  admin.initializeApp(); // ADC works automatically on Cloud Run
+}
 
 export const db = admin.firestore();

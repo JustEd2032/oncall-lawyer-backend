@@ -27,3 +27,9 @@ export async function getAppointmentsByUser(userId) {
     ...doc.data()
   }));
 }
+
+export async function getAppointmentById(id) {
+  const doc = await db.collection("appointments").doc(id).get();
+  if (!doc.exists) return null;
+  return { id: doc.id, ...doc.data() };
+}

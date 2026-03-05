@@ -3,10 +3,7 @@ import { db } from "./firestore.js";
 export async function createUser(userId, data) {
   const userRef = db.collection("users").doc(userId);
 
-  await userRef.set({
-    ...data,
-    createdAt: new Date()
-  });
+  await userRef.set({ ...data, createdAt: new Date() }, { merge: false });
 
   return { id: userId };
 }

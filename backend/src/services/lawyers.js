@@ -9,10 +9,17 @@ export async function createLawyerProfile(lawyerId, data) {
   return { id: lawyerId };
 }
 
+export async function getLawyerById(lawyerId) {
+  const doc = await db.collection("lawyers").doc(lawyerId).get();
+  if (!doc.exists) return null;
+  return { id: doc.id, ...doc.data() };
+}
+
 export async function listAvailableLawyers() {
   const snapshot = await db
     .collection("lawyers")
     .where("available", "==", true)
+    .limit(50)   // paginate via startAfter() in a future iteration
     .get();
 
   return snapshot.docs.map(doc => ({
@@ -20,3 +27,4 @@ export async function listAvailableLawyers() {
     ...doc.data()
   }));
 }
+

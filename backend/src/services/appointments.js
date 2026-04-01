@@ -17,15 +17,23 @@ export async function updateAppointmentStatus(id, status) {
 }
 
 export async function getAppointmentsByUser(userId) {
-  const snapshot = await db
+  // Try as client first
+  const clientSnapshot = await db
     .collection("appointments")
     .where("clientId", "==", userId)
     .get();
 
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }));
+  if (!clientSnapshot.empty) {
+    return clientSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  }
+
+  // Fall back to lawyer
+  const lawyerSnapshot = await db
+    .collection("appointments")
+    .where("lawyerId", "==", userId)
+    .get();
+
+  return lawyerSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
 export async function getAppointmentById(id) {

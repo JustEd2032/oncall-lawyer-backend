@@ -1,5 +1,6 @@
 import express from "express";
 import { authenticate } from "../middleware/auth.js";
+import { db } from "../services/firestore.js";
 import {
   createAppointment,
   updateAppointmentStatus,
@@ -10,51 +11,94 @@ import {
 const router = express.Router();
 
 router.post("/", authenticate, async (req, res) => {
-  const clientId = req.user.uid;
-  const { lawyerId, scheduledAt, paymentIntentId } = req.body;
+  try {
+    const clientId = req.user.uid;
+    const { lawyerId, scheduledAt, paymentIntentId } = req.body;
 
-  if (!clientId || !lawyerId || !scheduledAt) {
-    return res.status(400).json({ error: "Missing fields" });
+    if (!clientId || !lawyerId || !scheduledAt) {
+      return res.status(400).json({ error: "Missing fields" });
+    }
+
+    // Validate date
+    const parsedDate = new Date(scheduledAt);
+    if (isNaN(parsedDate.getTime())) {
+      return res.status(400).json({ error: "Invalid date format" });
+    }
+
+    const appointment = await createAppointment({
+      clientId,
+      lawyerId,
+      scheduledAt: parsedDate,
+      paymentIntentId
+    });
+
+    res.json(appointment);
+  } catch (err) {
+    console.error("Create appointment error:", err);
+    res.status(500).json({ error: "Failed to create appointment" });
   }
-
-  const appointment = await createAppointment({
-    clientId,
-    lawyerId,
-    scheduledAt: new Date(scheduledAt),
-    paymentIntentId
-  });
-
-  res.json(appointment);
 });
 
 router.patch("/:id/status", authenticate, async (req, res) => {
-  const { status } = req.body;
+  try {
+    const { status } = req.body;
 
-  // Fix 3 is also applied here — validate status value
-  const VALID_STATUSES = ["pending", "confirmed", "cancelled", "completed"];
-  if (!VALID_STATUSES.includes(status)) {
-    return res.status(400).json({ error: "Invalid status value" });
+    const VALID_STATUSES = ["pending", "confirmed", "cancelled", "completed"];
+    if (!VALID_STATUSES.includes(status)) {
+      return res.status(400).json({ error: "Invalid status value" });
+    }
+
+    const appointment = await getAppointmentById(req.params.id);
+    if (!appointment) {
+      return res.status(404).json({ error: "Appointment not found" });
+    }
+
+    // Check role from Firestore directly — don't rely on custom claims
+    const userDoc = await db.collection("users").doc(req.user.uid).get();
+    const userRole = userDoc.exists ? userDoc.data().role : "client";
+
+    const isClient = appointment.clientId === req.user.uid;
+    const isLawyer = appointment.lawyerId === req.user.uid || userRole === "lawyer";
+
+    if (!isClient && !isLawyer) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    await updateAppointmentStatus(req.params.id, status);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Update status error:", err);
+    res.status(500).json({ error: "Failed to update status" });
   }
-
-  const appointment = await getAppointmentById(req.params.id);
-  if (!appointment) return res.status(404).json({ error: "Appointment not found" });
-
-  // Only the client who owns it, or a lawyer, can update status
-  if (appointment.clientId !== req.user.uid && req.user.role !== "lawyer") {
-    return res.status(403).json({ error: "Forbidden" });
-  }
-
-  await updateAppointmentStatus(req.params.id, status);
-  res.json({ success: true });
 });
 
 router.get("/user/:id", authenticate, async (req, res) => {
-  if (req.user.uid !== req.params.id) {
-    return res.status(403).json({ error: "Forbidden" });
-  }
+  try {
+    if (req.user.uid !== req.params.id) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
 
-  const appointments = await getAppointmentsByUser(req.params.id);
-  res.json(appointments);
+    // Check if user is a lawyer and fetch their appointments too
+    const userDoc = await db.collection("users").doc(req.user.uid).get();
+    const userRole = userDoc.exists ? userDoc.data().role : "client";
+
+    let appointments;
+    if (userRole === "lawyer") {
+      // Fetch appointments where user is the lawyer
+      const snapshot = await db
+        .collection("appointments")
+        .where("lawyerId", "==", req.params.id)
+        .get();
+      appointments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } else {
+      appointments = await getAppointmentsByUser(req.params.id);
+    }
+
+    res.json(appointments);
+  } catch (err) {
+    console.error("Get appointments error:", err);
+    res.status(500).json({ error: "Failed to fetch appointments" });
+  }
 });
 
 export default router;

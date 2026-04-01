@@ -8,35 +8,43 @@ import lawyerRoutes from "./routes/lawyers.js";
 import appointmentRoutes from "./routes/appointments.js";
 import paymentConfirmRoutes from "./routes/payments-confirm.js";
 import webhookRoutes from "./routes/webhooks.js";
+import callRoutes from "./routes/calls.js";
 import { authenticate } from "./middleware/auth.js";
 
 const app = express();
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://oncall-lawyer-api-dev.web.app",
+  "https://oncall-lawyer-api-dev.firebaseapp.com",
+];
+
 app.use(cors({
-  origin: "http://localhost:5173"
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS blocked: ${origin}`));
+    }
+  },
+  credentials: true,
 }));
-app.use(express.json());
 
-app.use("/payments", paymentsRouter);
-
-app.use("/payments", paymentConfirmRoutes);
-
-app.use("/test", testRouter);
-
-app.use("/users", userRoutes);
-
-app.use("/lawyers", lawyerRoutes);
-
-app.use("/appointments", appointmentRoutes);
-
+// Webhook must be before express.json()
 app.use("/webhooks", webhookRoutes);
 
 app.use(express.json());
 
+app.use("/payments", paymentsRouter);
+app.use("/payments", paymentConfirmRoutes);
+app.use("/test", testRouter);
+app.use("/users", userRoutes);
+app.use("/lawyers", lawyerRoutes);
+app.use("/appointments", appointmentRoutes);
+app.use("/calls", callRoutes);
+
 app.get("/protected", authenticate, (req, res) => {
-  res.json({
-    message: "You are authenticated",
-    user: req.user,
-  });
+  res.json({ message: "You are authenticated", user: req.user });
 });
 
 app.get("/", (req, res) => {

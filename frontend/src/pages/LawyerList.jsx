@@ -15,12 +15,24 @@ function LawyerList() {
   useEffect(() => {
     auth.onAuthStateChanged((u) => setUser(u));
     api.get("/lawyers")
-      .then(res => setLawyers(res.data))
-      .catch(err => console.error("Failed to load lawyers", err))
+      .then(res => {
+        let data = res.data;
+        if (!Array.isArray(data)) {
+          data = data?.lawyers ?? data?.data ?? [];
+        }
+        if (!Array.isArray(data)) data = [];
+        setLawyers(data);
+      })
+      .catch(err => {
+        console.error("Failed to load lawyers", err);
+        setLawyers([]);
+      })
       .finally(() => setLoading(false));
   }, []);
 
-  const filtered = lawyers.filter(l =>
+  const lawyerList = Array.isArray(lawyers) ? lawyers : [];
+  const filtered = lawyerList.filter(l =>
+    !search ||
     l.bio?.toLowerCase().includes(search.toLowerCase()) ||
     l.specialties?.some(s => s.toLowerCase().includes(search.toLowerCase()))
   );
@@ -41,7 +53,7 @@ function LawyerList() {
           <input
             className="form-input"
             style={{ border: "none", outline: "none", flex: 1, background: "transparent" }}
-            placeholder="Search by specialty (e.g. family law, immigration...)"
+            placeholder="Search by specialty (e.g. family law, criminal...)"
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
@@ -50,7 +62,11 @@ function LawyerList() {
         {loading ? (
           <div style={styles.empty}>Loading lawyers...</div>
         ) : filtered.length === 0 ? (
-          <div style={styles.empty}>No lawyers found matching your search.</div>
+          <div style={styles.empty}>
+            {lawyerList.length === 0
+              ? "No lawyers are available yet."
+              : "No lawyers found matching your search."}
+          </div>
         ) : (
           <div className="fade-up-3" style={styles.grid}>
             {filtered.map(lawyer => (
@@ -87,7 +103,7 @@ function LawyerCard({ lawyer, onBook }) {
           <p style={styles.lawyerRate}>${lawyer.hourlyRate}/hr</p>
         </div>
       </div>
-      {lawyer.specialties?.length > 0 && (
+      {Array.isArray(lawyer.specialties) && lawyer.specialties.length > 0 && (
         <div style={styles.specialties}>
           {lawyer.specialties.map(s => (
             <span key={s} className="badge" style={styles.specialtyBadge}>{s}</span>
@@ -95,7 +111,11 @@ function LawyerCard({ lawyer, onBook }) {
         </div>
       )}
       {lawyer.bio && <p style={styles.bio}>{lawyer.bio}</p>}
-      <button className="btn-primary" style={{ width: "100%", justifyContent: "center", marginTop: "auto" }} onClick={onBook}>
+      <button
+        className="btn-primary"
+        style={{ width: "100%", justifyContent: "center", marginTop: "auto" }}
+        onClick={onBook}
+      >
         Book Consultation
       </button>
     </div>
@@ -107,26 +127,46 @@ function BookingModal({ lawyer, user, onClose, onBooked }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Build a valid min datetime string in local time for the input
+  const getMinDateTime = () => {
+    const now = new Date();
+    now.setSeconds(0, 0);
+    // Format as YYYY-MM-DDTHH:MM
+    const pad = n => String(n).padStart(2, "0");
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  };
+
   const handleBook = async () => {
     if (!scheduledAt) return setError("Please select a date and time.");
+
+    // Validate the date is a real date
+    const parsedDate = new Date(scheduledAt);
+    if (isNaN(parsedDate.getTime())) {
+      return setError("Invalid date selected. Please pick a valid date and time.");
+    }
+
+    if (parsedDate < new Date()) {
+      return setError("Please select a future date and time.");
+    }
+
     setError("");
     setLoading(true);
     try {
       const token = await user.getIdToken();
 
-      // 1. Create payment intent
+      // Create payment intent
       const intentRes = await api.post(
         "/payments/create-intent",
         { lawyerId: lawyer.id },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // 2. Create appointment (payment handled via Stripe webhook in production)
+      // Send ISO string — backend handles conversion to Firestore Timestamp
       await api.post(
         "/appointments",
         {
           lawyerId: lawyer.id,
-          scheduledAt,
+          scheduledAt: parsedDate.toISOString(),
           paymentIntentId: intentRes.data.clientSecret.split("_secret_")[0],
         },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -134,8 +174,9 @@ function BookingModal({ lawyer, user, onClose, onBooked }) {
 
       onBooked();
     } catch (err) {
-      setError("Booking failed. Please try again.");
       console.error(err);
+      const msg = err.response?.data?.error || "Booking failed. Please try again.";
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -169,7 +210,7 @@ function BookingModal({ lawyer, user, onClose, onBooked }) {
               type="datetime-local"
               value={scheduledAt}
               onChange={e => setScheduledAt(e.target.value)}
-              min={new Date().toISOString().slice(0, 16)}
+              min={getMinDateTime()}
             />
           </div>
 
@@ -178,7 +219,7 @@ function BookingModal({ lawyer, user, onClose, onBooked }) {
             <span style={{ fontWeight: "600", color: "var(--navy)" }}>${lawyer.hourlyRate}</span>
           </div>
 
-          {error && <p className="form-error">{error}</p>}
+          {error && <p className="form-error" style={{ marginTop: "0.75rem" }}>{error}</p>}
 
           <button
             className="btn-primary"

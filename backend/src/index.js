@@ -9,6 +9,7 @@ import appointmentRoutes from "./routes/appointments.js";
 import paymentConfirmRoutes from "./routes/payments-confirm.js";
 import webhookRoutes from "./routes/webhooks.js";
 import callRoutes from "./routes/calls.js";
+import availabilityRoutes from "./routes/availability.js";
 import { authenticate } from "./middleware/auth.js";
 
 const app = express();
@@ -30,9 +31,7 @@ app.use(cors({
   credentials: true,
 }));
 
-// Webhook must be before express.json()
 app.use("/webhooks", webhookRoutes);
-
 app.use(express.json());
 
 app.use("/payments", paymentsRouter);
@@ -42,20 +41,14 @@ app.use("/users", userRoutes);
 app.use("/lawyers", lawyerRoutes);
 app.use("/appointments", appointmentRoutes);
 app.use("/calls", callRoutes);
+app.use("/availability", availabilityRoutes);
 
 app.get("/protected", authenticate, (req, res) => {
   res.json({ message: "You are authenticated", user: req.user });
 });
 
-app.get("/", (req, res) => {
-  res.send("Lawyer API is running 🚀");
-});
-
-app.get("/health", (req, res) => {
-  res.send("API is healthy");
-});
+app.get("/", (req, res) => res.send("Lawyer API is running 🚀"));
+app.get("/health", (req, res) => res.send("API is healthy"));
 
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

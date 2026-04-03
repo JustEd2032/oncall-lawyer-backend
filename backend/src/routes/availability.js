@@ -63,11 +63,12 @@ router.post("/", authenticate, async (req, res) => {
   }
 });
 
-// GET /availability/:lawyerId/slots?date=YYYY-MM-DD&tz=offset
-// tz = client's UTC offset in minutes (e.g. -360 for UTC-6)
+// GET /availability/:lawyerId/slots?date=YYYY-MM-DD&isToday=true&nowMinutes=258
+// nowMinutes = client's current hour*60+minute in LOCAL time (e.g. 4:18pm = 258)
 router.get("/:lawyerId/slots", async (req, res) => {
   try {
-    const { date, tz } = req.query;
+    const { date, isToday, nowMinutes: nowMinutesStr } = req.query;
+
     if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return res.status(400).json({ error: "date required (YYYY-MM-DD)" });
     }
@@ -111,17 +112,11 @@ router.get("/:lawyerId/slots", async (req, res) => {
         return { start: startMin, end: startMin + duration };
       });
 
-    // Use client timezone offset to determine "now" in local time
-    // tz is the client's UTC offset in minutes (e.g. -360 for UTC-6)
-    const tzOffset = parseInt(tz) || 0;
-    const nowUtc = new Date();
-    // Shift now to client's local time
-    const nowLocal = new Date(nowUtc.getTime() + tzOffset * 60 * 1000);
-    const localDateStr = nowLocal.toISOString().slice(0, 10);
-    const isToday = date === localDateStr;
-    const nowMinutes = isToday
-      ? nowLocal.getUTCHours() * 60 + nowLocal.getUTCMinutes()
-      : 0;
+    // Client tells us exactly what "now" is in their local time
+    // isToday=true means the requested date is today in the client's timezone
+    // nowMinutes = client's current local hour*60+minute (e.g. 4:18pm = 258)
+    const clientIsToday = isToday === "true";
+    const nowMinutes = clientIsToday ? (parseInt(nowMinutesStr) || 0) : 0;
 
     // Generate 5-min ticks
     const slots = [];
@@ -132,7 +127,8 @@ router.get("/:lawyerId/slots", async (req, res) => {
       for (let tick = blockStart; tick + duration <= blockEnd; tick += 5) {
         const slotEnd = tick + duration;
 
-        if (isToday && tick < nowMinutes) continue;
+        // Skip slots that have already started today
+        if (clientIsToday && tick < nowMinutes) continue;
 
         const isBlockedByLawyer = lawyerBlockedRanges.some(r => overlaps(tick, slotEnd, r.start, r.end));
         const isBooked = bookedRanges.some(r => overlaps(tick, slotEnd, r.start, r.end));

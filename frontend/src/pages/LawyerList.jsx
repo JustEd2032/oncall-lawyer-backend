@@ -136,7 +136,7 @@ function BookingModal({ lawyer, user, onClose, onBooked }) {
   const [error, setError] = useState("");
 
   // Client timezone offset in minutes
-  const tzOffset = -new Date().getTimezoneOffset(); // e.g. -360 for UTC-6
+  
 
   useEffect(() => {
     if (!selectedDate) return;
@@ -145,7 +145,11 @@ function BookingModal({ lawyer, user, onClose, onBooked }) {
     setExpandedHour(null);
     setSlotsBlocked(false);
 
-    api.get(`/availability/${lawyer.id}/slots?date=${selectedDate}&tz=${tzOffset}`)
+    const now = new Date();
+    const todayLocal = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+    const clientIsToday = selectedDate === todayLocal;
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    api.get(`/availability/${lawyer.id}/slots?date=${selectedDate}&isToday=${clientIsToday}&nowMinutes=${nowMinutes}`)
       .then(res => {
         setSlots(res.data.slots || []);
         setSlotsBlocked(res.data.blocked || false);

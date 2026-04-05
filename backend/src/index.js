@@ -11,6 +11,7 @@ import webhookRoutes from "./routes/webhooks.js";
 import callRoutes from "./routes/calls.js";
 import availabilityRoutes from "./routes/availability.js";
 import { authenticate } from "./middleware/auth.js";
+import { startNotificationCron } from "./services/notificationCron.js";
 
 const app = express();
 
@@ -51,4 +52,7 @@ app.get("/", (req, res) => res.send("Lawyer API is running 🚀"));
 app.get("/health", (req, res) => res.send("API is healthy"));
 
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  startNotificationCron();
+});

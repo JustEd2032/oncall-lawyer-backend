@@ -7,6 +7,7 @@ import {
   getAppointmentsByUser,
   getAppointmentById
 } from "../services/appointments.js";
+import { sendBookingConfirmation } from "../services/email.js";
 
 const router = express.Router();
 
@@ -19,18 +20,43 @@ router.post("/", authenticate, async (req, res) => {
       return res.status(400).json({ error: "Missing fields" });
     }
 
-    // Validate date
     const parsedDate = new Date(scheduledAt);
     if (isNaN(parsedDate.getTime())) {
       return res.status(400).json({ error: "Invalid date format" });
     }
 
     const appointment = await createAppointment({
-      clientId,
-      lawyerId,
+      clientId, lawyerId,
       scheduledAt: parsedDate,
       paymentIntentId
     });
+
+    // Send confirmation emails in background — don't block the response
+    Promise.all([
+      db.collection("users").doc(clientId).get(),
+      db.collection("users").doc(lawyerId).get(),
+    ]).then(async ([clientDoc, lawyerDoc]) => {
+      const clientEmail = clientDoc.exists ? clientDoc.data().email : null;
+      const lawyerEmail = lawyerDoc.exists ? lawyerDoc.data().email : null;
+      const clientName = clientDoc.exists ? (clientDoc.data().name || clientEmail) : "Client";
+      const lawyerName = lawyerDoc.exists ? (lawyerDoc.data().name || lawyerEmail) : "Attorney";
+
+      const shared = {
+        scheduledAt: parsedDate,
+        appointmentId: appointment.id,
+        clientName,
+        lawyerName,
+      };
+
+      if (clientEmail) {
+        await sendBookingConfirmation({ ...shared, toEmail: clientEmail, role: "client" })
+          .catch(e => console.error("Client confirmation email failed:", e));
+      }
+      if (lawyerEmail) {
+        await sendBookingConfirmation({ ...shared, toEmail: lawyerEmail, role: "lawyer" })
+          .catch(e => console.error("Lawyer confirmation email failed:", e));
+      }
+    }).catch(e => console.error("Email fetch error:", e));
 
     res.json(appointment);
   } catch (err) {
@@ -49,11 +75,8 @@ router.patch("/:id/status", authenticate, async (req, res) => {
     }
 
     const appointment = await getAppointmentById(req.params.id);
-    if (!appointment) {
-      return res.status(404).json({ error: "Appointment not found" });
-    }
+    if (!appointment) return res.status(404).json({ error: "Appointment not found" });
 
-    // Check role from Firestore directly — don't rely on custom claims
     const userDoc = await db.collection("users").doc(req.user.uid).get();
     const userRole = userDoc.exists ? userDoc.data().role : "client";
 
@@ -78,15 +101,12 @@ router.get("/user/:id", authenticate, async (req, res) => {
       return res.status(403).json({ error: "Forbidden" });
     }
 
-    // Check if user is a lawyer and fetch their appointments too
     const userDoc = await db.collection("users").doc(req.user.uid).get();
     const userRole = userDoc.exists ? userDoc.data().role : "client";
 
     let appointments;
     if (userRole === "lawyer") {
-      // Fetch appointments where user is the lawyer
-      const snapshot = await db
-        .collection("appointments")
+      const snapshot = await db.collection("appointments")
         .where("lawyerId", "==", req.params.id)
         .get();
       appointments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));

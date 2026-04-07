@@ -4,16 +4,16 @@ import { signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
 
-function Navbar({ user }) {
+export default function Navbar({ user }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [role, setRole] = useState(null);
 
   useEffect(() => {
     if (!user?.uid) return;
-    getDoc(doc(db, "users", user.uid)).then(snap => {
-      if (snap.exists()) setRole(snap.data().role || "client");
-    }).catch(() => setRole("client"));
+    getDoc(doc(db, "users", user.uid))
+      .then(snap => { if (snap.exists()) setRole(snap.data().role || "client"); })
+      .catch(() => setRole("client"));
   }, [user?.uid]);
 
   const handleLogout = async () => {
@@ -25,37 +25,39 @@ function Navbar({ user }) {
 
   const links = role === "lawyer"
     ? [
-        { label: "Dashboard", path: "/lawyer-dashboard" },
-        { label: "My Profile", path: "/lawyer-dashboard" },
+        { label: "Panel", path: "/lawyer-dashboard" },
+        { label: "Disponibilidad", path: "/lawyer-dashboard" },
       ]
     : [
-        { label: "Dashboard", path: "/dashboard" },
-        { label: "Find a Lawyer", path: "/lawyers" },
+        { label: "Mis Citas", path: "/dashboard" },
+        { label: "Abogados", path: "/lawyers" },
       ];
 
   return (
     <nav className="navbar">
-      <div className="navbar-brand">
-        OnCall<span>Lawyer</span>
+      <div style={{ cursor: "pointer", display: "flex", alignItems: "center" }}
+        onClick={() => navigate(role === "lawyer" ? "/lawyer-dashboard" : "/dashboard")}>
+        <img
+          src="/logo-gold.png"
+          alt="Prudente Torres & Asociados"
+          style={{
+            height: "42px", width: "auto", objectFit: "contain",
+          }}
+        />
       </div>
       <div className="navbar-links">
         {links.map(({ label, path }) => (
-          <a
-            key={label}
-            href={path}
-            onClick={(e) => { e.preventDefault(); navigate(path); }}
-            style={{ color: location.pathname === path ? "#fff" : undefined }}
-          >
+          <a key={label} href={path}
+            onClick={e => { e.preventDefault(); navigate(path); }}
+            style={{ color: location.pathname === path ? "var(--gold-light)" : undefined }}>
             {label}
           </a>
         ))}
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <div className="navbar-avatar">{initials}</div>
-          <button onClick={handleLogout}>Sign Out</button>
+          <button onClick={handleLogout}>Salir</button>
         </div>
       </div>
     </nav>
   );
 }
-
-export default Navbar;

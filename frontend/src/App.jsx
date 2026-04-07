@@ -4,6 +4,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "./firebase";
 
+import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import ClientDashboard from "./pages/ClientDashboard";
 import LawyerDashboard from "./pages/LawyerDashboard";
@@ -20,26 +21,32 @@ function AppInner({ user, role }) {
   return (
     <>
       <Routes>
-        <Route path="/" element={user ? <Navigate to={defaultRedirect} /> : <Auth />} />
+        {/* Public */}
+        <Route path="/" element={<Landing />} />
+        <Route path="/auth" element={user ? <Navigate to={defaultRedirect} /> : <Auth />} />
+
+        {/* Client */}
         <Route path="/dashboard" element={<ProtectedRoute><ClientDashboard /></ProtectedRoute>} />
         <Route path="/lawyers" element={<ProtectedRoute><LawyerList /></ProtectedRoute>} />
+
+        {/* Lawyer */}
         <Route path="/lawyer-dashboard" element={<ProtectedRoute><LawyerDashboard /></ProtectedRoute>} />
+
+        {/* Call */}
         <Route path="/call/:appointmentId" element={<ProtectedRoute><CallRoom /></ProtectedRoute>} />
-        <Route path="*" element={<Navigate to={defaultRedirect} />} />
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
 
-      {/* Only show banner if not currently on a call page */}
-      <CallNotificationBanner
-        notification={notification}
-        onDismiss={dismissNotification}
-      />
+      <CallNotificationBanner notification={notification} onDismiss={dismissNotification} />
     </>
   );
 }
 
-function App() {
+export default function App() {
   const [user, setUser] = useState(undefined);
-  const [role, setRole] = useState(undefined); // undefined = still loading
+  const [role, setRole] = useState(undefined);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -47,9 +54,7 @@ function App() {
         try {
           const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
           setRole(userDoc.exists() ? (userDoc.data().role || "client") : "client");
-        } catch {
-          setRole("client");
-        }
+        } catch { setRole("client"); }
         setUser(firebaseUser);
       } else {
         setUser(null);
@@ -59,16 +64,14 @@ function App() {
     return unsubscribe;
   }, []);
 
-  // Wait for BOTH user AND role before rendering
-  // This prevents the lawyer briefly seeing the client dashboard
   if (user === undefined || (user !== null && role === undefined)) {
     return (
       <div style={{
         display: "flex", alignItems: "center", justifyContent: "center",
-        height: "100vh", fontFamily: "var(--font-body)", color: "var(--gray-500)",
-        fontSize: "0.95rem",
+        height: "100vh", fontFamily: "var(--font-body)", color: "var(--brown-light)",
+        background: "var(--ivory)", fontSize: "0.9rem", letterSpacing: "0.1em",
       }}>
-        Loading...
+        PRUDENTE TORRES &amp; ASOCIADOS
       </div>
     );
   }
@@ -79,5 +82,3 @@ function App() {
     </BrowserRouter>
   );
 }
-
-export default App;

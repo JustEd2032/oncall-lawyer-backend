@@ -1,15 +1,26 @@
 import sgMail from "@sendgrid/mail";
 
+// Robust date parser — handles JS Date, Firestore Timestamp, REST {_seconds}, ISO string
+function parseDate(val) {
+  if (!val) return new Date();
+  if (val instanceof Date) return val;
+  if (typeof val.toDate === "function") return val.toDate();
+  if (val._seconds !== undefined) return new Date(val._seconds * 1000);
+  if (val.seconds !== undefined) return new Date(val.seconds * 1000);
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? new Date() : d;
+}
+
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL;
 const APP_URL = process.env.APP_URL || "https://oncall-lawyer-api-dev.web.app";
 
 export async function sendAppointmentReminder({ toEmail, clientName, lawyerName, scheduledAt, appointmentId, role }) {
-  const date = scheduledAt?.toDate ? scheduledAt.toDate() : new Date(scheduledAt._seconds * 1000);
+  const date = parseDate(scheduledAt);
   const formattedDate = date.toLocaleDateString("en-US", {
-    weekday: "long", month: "long", day: "numeric",
-    hour: "2-digit", minute: "2-digit"
+    weekday: "long", year: "numeric", month: "long", day: "numeric",
+    hour: "2-digit", minute: "2-digit", hour12: true
   });
 
   const isLawyer = role === "lawyer";
@@ -86,19 +97,20 @@ export async function sendAppointmentReminder({ toEmail, clientName, lawyerName,
     </html>
   `;
 
-  await sgMail.send({
-    to: toEmail,
-    from: FROM_EMAIL,
-    subject,
-    html,
-  });
+  try {
+    await sgMail.send({ to: toEmail, from: FROM_EMAIL, subject, html });
+    console.log(`✅ Reminder email sent to ${toEmail}`);
+  } catch (err) {
+    console.error(`❌ SendGrid error sending to ${toEmail}:`, JSON.stringify(err?.response?.body || err.message));
+    throw err;
+  }
 }
 
 export async function sendBookingConfirmation({ toEmail, clientName, lawyerName, scheduledAt, appointmentId, role }) {
-  const date = scheduledAt?.toDate ? scheduledAt.toDate() : new Date(scheduledAt._seconds * 1000);
+  const date = parseDate(scheduledAt);
   const formattedDate = date.toLocaleDateString("en-US", {
-    weekday: "long", month: "long", day: "numeric",
-    hour: "2-digit", minute: "2-digit"
+    weekday: "long", year: "numeric", month: "long", day: "numeric",
+    hour: "2-digit", minute: "2-digit", hour12: true
   });
 
   const isLawyer = role === "lawyer";
@@ -172,10 +184,11 @@ export async function sendBookingConfirmation({ toEmail, clientName, lawyerName,
     </html>
   `;
 
-  await sgMail.send({
-    to: toEmail,
-    from: FROM_EMAIL,
-    subject,
-    html,
-  });
+  try {
+    await sgMail.send({ to: toEmail, from: FROM_EMAIL, subject, html });
+    console.log(`✅ Confirmation email sent to ${toEmail}`);
+  } catch (err) {
+    console.error(`❌ SendGrid error sending to ${toEmail}:`, JSON.stringify(err?.response?.body || err.message));
+    throw err;
+  }
 }

@@ -14,7 +14,8 @@ const router = express.Router();
 router.post("/", authenticate, async (req, res) => {
   try {
     const clientId = req.user.uid;
-    const { lawyerId, scheduledAt, paymentIntentId } = req.body;
+    // tzOffset = client's UTC offset in minutes (e.g. -360 for UTC-6)
+    const { lawyerId, scheduledAt, paymentIntentId, tzOffset } = req.body;
 
     if (!clientId || !lawyerId || !scheduledAt) {
       return res.status(400).json({ error: "Missing fields" });
@@ -25,13 +26,48 @@ router.post("/", authenticate, async (req, res) => {
       return res.status(400).json({ error: "Invalid date format" });
     }
 
+    // ── Double booking check ──
+    // Get the lawyer's appointment duration
+    const availDoc = await db.collection("availability").doc(lawyerId).get();
+    const duration = availDoc.exists ? (availDoc.data().appointmentDuration || 60) : 60;
+
+    const newStart = parsedDate.getTime();
+    const newEnd = newStart + duration * 60 * 1000;
+
+    // Check for any active appointments that overlap this slot
+    const startWindow = new Date(newStart - duration * 60 * 1000);
+    const endWindow = new Date(newEnd);
+
+    const conflictSnapshot = await db.collection("appointments")
+      .where("lawyerId", "==", lawyerId)
+      .where("scheduledAt", ">=", startWindow)
+      .where("scheduledAt", "<=", endWindow)
+      .get();
+
+    const hasConflict = conflictSnapshot.docs.some(doc => {
+      const appt = doc.data();
+      if (["cancelled"].includes(appt.status)) return false;
+      const existingStart = appt.scheduledAt?.toDate
+        ? appt.scheduledAt.toDate().getTime()
+        : new Date(appt.scheduledAt._seconds * 1000).getTime();
+      const existingEnd = existingStart + duration * 60 * 1000;
+      // Overlap check
+      return newStart < existingEnd && newEnd > existingStart;
+    });
+
+    if (hasConflict) {
+      return res.status(409).json({ error: "This time slot is no longer available. Please choose another time." });
+    }
+
     const appointment = await createAppointment({
       clientId, lawyerId,
       scheduledAt: parsedDate,
-      paymentIntentId
+      paymentIntentId,
+      // Store client timezone offset so emails show correct local time
+      tzOffset: tzOffset || 0,
     });
 
-    // Send confirmation emails in background — don't block the response
+    // Send confirmation emails in background
     Promise.all([
       db.collection("users").doc(clientId).get(),
       db.collection("users").doc(lawyerId).get(),
@@ -46,6 +82,7 @@ router.post("/", authenticate, async (req, res) => {
         appointmentId: appointment.id,
         clientName,
         lawyerName,
+        tzOffset: tzOffset || 0,
       };
 
       if (clientEmail) {
@@ -68,25 +105,21 @@ router.post("/", authenticate, async (req, res) => {
 router.patch("/:id/status", authenticate, async (req, res) => {
   try {
     const { status } = req.body;
-
     const VALID_STATUSES = ["pending", "confirmed", "cancelled", "completed"];
     if (!VALID_STATUSES.includes(status)) {
       return res.status(400).json({ error: "Invalid status value" });
     }
-
     const appointment = await getAppointmentById(req.params.id);
     if (!appointment) return res.status(404).json({ error: "Appointment not found" });
 
     const userDoc = await db.collection("users").doc(req.user.uid).get();
     const userRole = userDoc.exists ? userDoc.data().role : "client";
-
     const isClient = appointment.clientId === req.user.uid;
     const isLawyer = appointment.lawyerId === req.user.uid || userRole === "lawyer";
 
     if (!isClient && !isLawyer) {
       return res.status(403).json({ error: "Forbidden" });
     }
-
     await updateAppointmentStatus(req.params.id, status);
     res.json({ success: true });
   } catch (err) {
@@ -100,7 +133,6 @@ router.get("/user/:id", authenticate, async (req, res) => {
     if (req.user.uid !== req.params.id) {
       return res.status(403).json({ error: "Forbidden" });
     }
-
     const userDoc = await db.collection("users").doc(req.user.uid).get();
     const userRole = userDoc.exists ? userDoc.data().role : "client";
 
@@ -113,7 +145,6 @@ router.get("/user/:id", authenticate, async (req, res) => {
     } else {
       appointments = await getAppointmentsByUser(req.params.id);
     }
-
     res.json(appointments);
   } catch (err) {
     console.error("Get appointments error:", err);

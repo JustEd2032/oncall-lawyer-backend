@@ -84,7 +84,7 @@ function ClientDashboard() {
           <div className="card fade-up-3" style={styles.emptyCard}>
             <p style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>⚖️</p>
             <h3 style={{ fontFamily: "var(--font-display)", marginBottom: "0.5rem" }}>No appointments yet</h3>
-            <p style={{ color: "var(--gray-500)", marginBottom: "1.5rem" }}>
+            <p style={{ color: "var(--gray-warm)", marginBottom: "1.5rem" }}>
               Browse our network of verified attorneys and book your first consultation.
             </p>
             <button className="btn-primary" onClick={() => navigate("/lawyers")}>Find a Lawyer</button>
@@ -156,23 +156,23 @@ function AppointmentCard({ appointment, now, onJoin }) {
 
 const styles = {
   header: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" },
-  pageTitle: { fontFamily: "var(--font-display)", fontSize: "2rem", color: "var(--navy)", marginBottom: "0.25rem" },
-  pageSubtitle: { color: "var(--gray-500)", fontSize: "0.95rem" },
+  pageTitle: { fontFamily: "var(--font-display)", fontSize: "2rem", color: "var(--brown-deep)", marginBottom: "0.25rem" },
+  pageSubtitle: { color: "var(--gray-warm)", fontSize: "0.95rem" },
   statsRow: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem", marginBottom: "2.5rem" },
   statCard: { padding: "1.5rem", display: "flex", flexDirection: "column", gap: "0.4rem", alignItems: "flex-start" },
   statIcon: { fontSize: "1.5rem" },
-  statValue: { fontFamily: "var(--font-display)", fontSize: "2rem", fontWeight: "700", color: "var(--navy)" },
-  statLabel: { fontSize: "0.8rem", color: "var(--gray-500)", fontWeight: "500" },
-  sectionTitle: { fontFamily: "var(--font-display)", fontSize: "1.2rem", color: "var(--navy)", marginBottom: "1rem" },
+  statValue: { fontFamily: "var(--font-display)", fontSize: "2rem", fontWeight: "700", color: "var(--brown-deep)" },
+  statLabel: { fontSize: "0.8rem", color: "var(--gray-warm)", fontWeight: "500" },
+  sectionTitle: { fontFamily: "var(--font-display)", fontSize: "1.2rem", color: "var(--brown-deep)", marginBottom: "1rem" },
   appointmentList: { display: "flex", flexDirection: "column", gap: "0.75rem" },
   apptCard: { padding: "1.25rem 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between" },
   apptLeft: { display: "flex", alignItems: "center", gap: "1rem" },
-  apptIcon: { width: "42px", height: "42px", borderRadius: "10px", background: "var(--gray-50)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.2rem" },
-  apptLawyer: { fontWeight: "600", color: "var(--navy)", fontSize: "0.95rem" },
-  apptDate: { fontSize: "0.85rem", color: "var(--gray-500)", marginTop: "0.1rem" },
+  apptIcon: { width: "42px", height: "42px", borderRadius: "10px", background: "var(--parchment)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.2rem" },
+  apptLawyer: { fontWeight: "600", color: "var(--brown-deep)", fontSize: "0.95rem" },
+  apptDate: { fontSize: "0.85rem", color: "var(--gray-warm)", marginTop: "0.1rem" },
   timeUntil: { fontSize: "0.8rem", color: "var(--gold)", fontWeight: "600", marginTop: "0.2rem" },
   emptyCard: { padding: "4rem 2rem", textAlign: "center", maxWidth: "480px", margin: "0 auto" },
-  empty: { textAlign: "center", color: "var(--gray-500)", padding: "3rem" },
+  empty: { textAlign: "center", color: "var(--gray-warm)", padding: "3rem" },
 };
 
 export default ClientDashboard;

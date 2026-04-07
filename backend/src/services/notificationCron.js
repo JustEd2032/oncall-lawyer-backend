@@ -44,6 +44,7 @@ async function checkUpcomingAppointments() {
         appointmentId: apptId,
         clientName,
         lawyerName,
+        tzOffset: appt.tzOffset || 0,
       };
 
       // Send to client

@@ -198,7 +198,7 @@ function LawyerDashboard() {
               <div className="card" style={s.emptyCard}>
                 <p style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>📭</p>
                 <h3 style={{ fontFamily: "var(--font-display)", marginBottom: "0.5rem" }}>No appointments yet</h3>
-                <p style={{ color: "var(--gray-500)" }}>Clients will appear here once they book.</p>
+                <p style={{ color: "var(--gray-warm)" }}>Clients will appear here once they book.</p>
               </div>
             ) : (
               <>
@@ -228,7 +228,7 @@ function LawyerDashboard() {
           <div className="fade-up">
             <div className="card" style={s.availCard}>
               <h2 style={s.sectionTitle}>Availability Settings</h2>
-              <p style={{ color: "var(--gray-500)", fontSize: "0.875rem", marginBottom: "1.5rem" }}>
+              <p style={{ color: "var(--gray-warm)", fontSize: "0.875rem", marginBottom: "1.5rem" }}>
                 Set working blocks per day, mark specific time ranges as unavailable, and block full dates.
                 Clients see 5-minute slots — booked and blocked times appear greyed out.
               </p>
@@ -243,7 +243,7 @@ function LawyerDashboard() {
                     onChange={e => setAppointmentDuration(Number(e.target.value))}
                   />
                 </div>
-                <p style={{ color: "var(--gray-500)", fontSize: "0.8rem", maxWidth: "300px", marginTop: "1.5rem" }}>
+                <p style={{ color: "var(--gray-warm)", fontSize: "0.8rem", maxWidth: "300px", marginTop: "1.5rem" }}>
                   When a client books at e.g. 4:15, this many minutes become unavailable (4:15–5:15).
                 </p>
               </div>
@@ -266,7 +266,7 @@ function LawyerDashboard() {
                       </span>
                     </label>
                     {days[day]?.enabled && (
-                      <span style={{ fontSize: "0.75rem", color: "var(--gray-500)" }}>
+                      <span style={{ fontSize: "0.75rem", color: "var(--gray-warm)" }}>
                         {(days[day].blocks || []).length} working block(s) · {(days[day].blockedRanges || []).length} gap(s)
                       </span>
                     )}
@@ -297,7 +297,7 @@ function LawyerDashboard() {
 
                       {/* Blocked ranges */}
                       <div style={s.blockSection}>
-                        <p style={{ ...s.blockLabel, color: "var(--error)" }}>Unavailable Gaps <span style={{ color: "var(--gray-500)", fontWeight: "400" }}>(within working blocks)</span></p>
+                        <p style={{ ...s.blockLabel, color: "var(--error)" }}>Unavailable Gaps <span style={{ color: "var(--gray-warm)", fontWeight: "400" }}>(within working blocks)</span></p>
                         {(days[day].blockedRanges || []).length === 0 && (
                           <p style={{ color: "var(--gray-300)", fontSize: "0.8rem", marginBottom: "0.5rem" }}>No gaps set — full working blocks are open</p>
                         )}
@@ -325,7 +325,7 @@ function LawyerDashboard() {
 
               {/* Blocked dates */}
               <h2 style={{ ...s.sectionTitle, marginBottom: "0.5rem" }}>Blocked Dates</h2>
-              <p style={{ color: "var(--gray-500)", fontSize: "0.875rem", marginBottom: "1rem" }}>Block full days — vacations, holidays, etc.</p>
+              <p style={{ color: "var(--gray-warm)", fontSize: "0.875rem", marginBottom: "1rem" }}>Block full days — vacations, holidays, etc.</p>
               <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1rem", flexWrap: "wrap" }}>
                 <input type="date" className="form-input" style={{ maxWidth: "200px" }}
                   value={newBlockedDate} min={new Date().toISOString().slice(0, 10)}
@@ -341,7 +341,7 @@ function LawyerDashboard() {
                   {blockedDates.map(date => (
                     <div key={date} style={s.blockedTag}>
                       <span>{new Date(date + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}</span>
-                      <button style={{ background: "none", border: "none", color: "var(--gray-500)", cursor: "pointer", fontSize: "0.8rem" }}
+                      <button style={{ background: "none", border: "none", color: "var(--gray-warm)", cursor: "pointer", fontSize: "0.8rem" }}
                         onClick={() => setBlockedDates(prev => prev.filter(d => d !== date))}>✕</button>
                     </div>
                   ))}
@@ -391,17 +391,17 @@ function AppointmentRow({ appointment, now, onStatusChange, onJoin }) {
   return (
     <div className="card" style={{ padding: "1.25rem 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem", ...(canJoin ? { borderLeft: "3px solid var(--gold)" } : {}) }}>
       <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-        <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "var(--gray-50)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.1rem" }}>👤</div>
+        <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "var(--parchment)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.1rem" }}>👤</div>
         <div>
-          <p style={{ fontWeight: "600", color: "var(--navy)", fontSize: "0.9rem" }}>Client: {appointment.clientId?.slice(0, 10)}...</p>
-          <p style={{ fontSize: "0.82rem", color: "var(--gray-500)", marginTop: "0.1rem" }}>{formatDate(appointment.scheduledAt)}</p>
+          <p style={{ fontWeight: "600", color: "var(--brown-deep)", fontSize: "0.9rem" }}>Client: {appointment.clientId?.slice(0, 10)}...</p>
+          <p style={{ fontSize: "0.82rem", color: "var(--gray-warm)", marginTop: "0.1rem" }}>{formatDate(appointment.scheduledAt)}</p>
           {canJoin && <p style={{ fontSize: "0.8rem", color: "var(--gold)", fontWeight: "600", marginTop: "0.2rem" }}>{getTimeUntil(appointment.scheduledAt, now)}</p>}
         </div>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
         {canJoin && onJoin && <button className="btn-gold" style={{ padding: "0.4rem 1rem", fontSize: "0.85rem" }} onClick={onJoin}>📞 Join Call</button>}
         <span className={`badge badge-${appointment.status}`}>{appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}</span>
-        <select style={{ border: "1.5px solid var(--gray-100)", borderRadius: "var(--radius)", padding: "0.35rem 0.65rem", fontSize: "0.8rem", color: "var(--navy)", background: "var(--white)", cursor: "pointer", fontFamily: "var(--font-body)" }}
+        <select style={{ border: "1.5px solid var(--parchment)", borderRadius: "var(--radius)", padding: "0.35rem 0.65rem", fontSize: "0.8rem", color: "var(--brown-deep)", background: "var(--white)", cursor: "pointer", fontFamily: "var(--font-body)" }}
           value={appointment.status} onChange={e => onStatusChange(appointment.id, e.target.value)}>
           {VALID_STATUSES.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
         </select>
@@ -412,17 +412,17 @@ function AppointmentRow({ appointment, now, onStatusChange, onJoin }) {
 
 const s = {
   header: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "2rem" },
-  pageTitle: { fontFamily: "var(--font-display)", fontSize: "2rem", color: "var(--navy)", marginBottom: "0.25rem" },
-  pageSubtitle: { color: "var(--gray-500)", fontSize: "0.95rem" },
+  pageTitle: { fontFamily: "var(--font-display)", fontSize: "2rem", color: "var(--brown-deep)", marginBottom: "0.25rem" },
+  pageSubtitle: { color: "var(--gray-warm)", fontSize: "0.95rem" },
   statsRow: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem", marginBottom: "2rem" },
   statCard: { padding: "1.25rem", display: "flex", flexDirection: "column", gap: "0.3rem" },
   statIcon: { fontSize: "1.4rem" },
-  statValue: { fontFamily: "var(--font-display)", fontSize: "1.8rem", fontWeight: "700", color: "var(--navy)" },
-  statLabel: { fontSize: "0.78rem", color: "var(--gray-500)", fontWeight: "500" },
+  statValue: { fontFamily: "var(--font-display)", fontSize: "1.8rem", fontWeight: "700", color: "var(--brown-deep)" },
+  statLabel: { fontSize: "0.78rem", color: "var(--gray-warm)", fontWeight: "500" },
   tabs: { display: "flex", gap: "0.5rem", marginBottom: "1.5rem", flexWrap: "wrap" },
-  tab: { padding: "0.6rem 1.25rem", border: "1.5px solid var(--gray-100)", borderRadius: "var(--radius)", background: "var(--white)", color: "var(--gray-500)", fontWeight: "500", fontSize: "0.875rem", transition: "all 0.2s", fontFamily: "var(--font-body)" },
-  tabActive: { background: "var(--navy)", color: "var(--white)", borderColor: "var(--navy)" },
-  sectionTitle: { fontFamily: "var(--font-display)", fontSize: "1.15rem", color: "var(--navy)", marginBottom: "1rem" },
+  tab: { padding: "0.6rem 1.25rem", border: "1.5px solid var(--parchment)", borderRadius: "var(--radius)", background: "var(--white)", color: "var(--brown-mid)", fontWeight: "500", fontSize: "0.875rem", transition: "all 0.2s", fontFamily: "var(--font-body)" },
+  tabActive: { background: "var(--brown-deep)", color: "var(--gold-light)", borderColor: "var(--brown-deep)" },
+  sectionTitle: { fontFamily: "var(--font-display)", fontSize: "1.15rem", color: "var(--brown-deep)", marginBottom: "1rem" },
   apptList: { display: "flex", flexDirection: "column", gap: "0.75rem" },
   availCard: { padding: "2rem", maxWidth: "760px" },
   daySection: { borderBottom: "1px solid var(--gray-100)", paddingBottom: "1.25rem", marginBottom: "1.25rem" },
@@ -430,13 +430,13 @@ const s = {
   toggleLabel: { display: "flex", alignItems: "center", cursor: "pointer" },
   dayBody: { paddingLeft: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem" },
   blockSection: { display: "flex", flexDirection: "column", gap: "0.4rem" },
-  blockLabel: { fontSize: "0.8rem", fontWeight: "600", color: "var(--navy)", marginBottom: "0.25rem", textTransform: "uppercase", letterSpacing: "0.04em" },
+  blockLabel: { fontSize: "0.8rem", fontWeight: "600", color: "var(--brown-deep)", marginBottom: "0.25rem", textTransform: "uppercase", letterSpacing: "0.04em" },
   timeRow: { display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" },
-  toLabel: { color: "var(--gray-500)", fontSize: "0.875rem" },
+  toLabel: { color: "var(--gray-warm)", fontSize: "0.875rem" },
   removeBtn: { background: "none", border: "1px solid var(--gray-100)", borderRadius: "6px", color: "var(--error)", cursor: "pointer", fontSize: "0.78rem", padding: "0.3rem 0.6rem", fontFamily: "var(--font-body)" },
-  blockedTag: { display: "flex", alignItems: "center", gap: "0.5rem", background: "var(--gray-50)", border: "1px solid var(--gray-100)", borderRadius: "999px", padding: "0.3rem 0.75rem", fontSize: "0.82rem", color: "var(--navy)" },
+  blockedTag: { display: "flex", alignItems: "center", gap: "0.5rem", background: "var(--parchment)", border: "1px solid var(--gray-100)", borderRadius: "999px", padding: "0.3rem 0.75rem", fontSize: "0.82rem", color: "var(--brown-deep)" },
   emptyCard: { padding: "4rem 2rem", textAlign: "center", maxWidth: "480px", margin: "0 auto" },
-  empty: { textAlign: "center", color: "var(--gray-500)", padding: "3rem" },
+  empty: { textAlign: "center", color: "var(--gray-warm)", padding: "3rem" },
 };
 
 export default LawyerDashboard;

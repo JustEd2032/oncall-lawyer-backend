@@ -1,6 +1,6 @@
 import sgMail from "@sendgrid/mail";
 
-// Robust date parser — handles JS Date, Firestore Timestamp, REST {_seconds}, ISO string
+// Robust date parser
 function parseDate(val) {
   if (!val) return new Date();
   if (val instanceof Date) return val;
@@ -11,17 +11,34 @@ function parseDate(val) {
   return isNaN(d.getTime()) ? new Date() : d;
 }
 
+// Format date in the client's local timezone using their UTC offset in minutes
+// e.g. tzOffset = -360 for UTC-6 (Mexico City)
+function formatInTimezone(date, tzOffset) {
+  // Shift the UTC time by the client's offset to get their local time
+  const localMs = date.getTime() + (tzOffset || 0) * 60 * 1000;
+  const localDate = new Date(localMs);
+  // Format using UTC methods which now reflect local time after the shift
+  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const day = days[localDate.getUTCDay()];
+  const month = months[localDate.getUTCMonth()];
+  const date2 = localDate.getUTCDate();
+  const year = localDate.getUTCFullYear();
+  let hours = localDate.getUTCHours();
+  const minutes = String(localDate.getUTCMinutes()).padStart(2, "0");
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12;
+  return `${day}, ${month} ${date2}, ${year} at ${hours}:${minutes} ${ampm}`;
+}
+
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL;
 const APP_URL = process.env.APP_URL || "https://oncall-lawyer-api-dev.web.app";
 
-export async function sendAppointmentReminder({ toEmail, clientName, lawyerName, scheduledAt, appointmentId, role }) {
+export async function sendAppointmentReminder({ toEmail, clientName, lawyerName, scheduledAt, appointmentId, role, tzOffset }) {
   const date = parseDate(scheduledAt);
-  const formattedDate = date.toLocaleDateString("en-US", {
-    weekday: "long", year: "numeric", month: "long", day: "numeric",
-    hour: "2-digit", minute: "2-digit", hour12: true
-  });
+  const formattedDate = formatInTimezone(date, tzOffset);
 
   const isLawyer = role === "lawyer";
   const subject = isLawyer
@@ -106,12 +123,9 @@ export async function sendAppointmentReminder({ toEmail, clientName, lawyerName,
   }
 }
 
-export async function sendBookingConfirmation({ toEmail, clientName, lawyerName, scheduledAt, appointmentId, role }) {
+export async function sendBookingConfirmation({ toEmail, clientName, lawyerName, scheduledAt, appointmentId, role, tzOffset }) {
   const date = parseDate(scheduledAt);
-  const formattedDate = date.toLocaleDateString("en-US", {
-    weekday: "long", year: "numeric", month: "long", day: "numeric",
-    hour: "2-digit", minute: "2-digit", hour12: true
-  });
+  const formattedDate = formatInTimezone(date, tzOffset);
 
   const isLawyer = role === "lawyer";
   const subject = isLawyer

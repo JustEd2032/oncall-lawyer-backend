@@ -149,7 +149,7 @@ function BookingModal({ lawyer, user, onClose, onBooked }) {
     const todayLocal = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
     const clientIsToday = selectedDate === todayLocal;
     const nowMinutes = now.getHours() * 60 + now.getMinutes();
-    api.get(`/availability/${lawyer.id}/slots?date=${selectedDate}&isToday=${clientIsToday}&nowMinutes=${nowMinutes}`)
+    api.get(`/availability/${lawyer.id}/slots?date=${selectedDate}&isToday=${clientIsToday}&nowMinutes=${nowMinutes}&tzOffset=${-new Date().getTimezoneOffset()}`)
       .then(res => {
         setSlots(res.data.slots || []);
         setSlotsBlocked(res.data.blocked || false);
@@ -195,11 +195,20 @@ function BookingModal({ lawyer, user, onClose, onBooked }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      const tzOffset = -new Date().getTimezoneOffset();
       await api.post("/appointments",
-        { lawyerId: lawyer.id, scheduledAt, paymentIntentId: intentRes.data.clientSecret.split("_secret_")[0] },
+        { lawyerId: lawyer.id, scheduledAt, paymentIntentId: intentRes.data.clientSecret.split("_secret_")[0], tzOffset },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      // Re-fetch slots so booked time shows as unavailable for anyone else viewing
+      const now = new Date();
+      const todayLocal = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+      const clientIsToday = selectedDate === todayLocal;
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+      const refreshed = await api.get(`/availability/${lawyer.id}/slots?date=${selectedDate}&isToday=${clientIsToday}&nowMinutes=${nowMinutes}&tzOffset=${-new Date().getTimezoneOffset()}`);
+      setSlots(refreshed.data.slots || []);
+      setSelectedSlot("");
       onBooked();
     } catch (err) {
       setError(err.response?.data?.error || "Booking failed. Please try again.");
@@ -211,9 +220,9 @@ function BookingModal({ lawyer, user, onClose, onBooked }) {
   const todayStr = new Date().toISOString().slice(0, 10);
 
   const statusColors = {
-    available:   { bg: "var(--navy)",    color: "#fff",               border: "var(--navy)" },
-    partial:     { bg: "#f0f4ff",        color: "var(--navy-muted)",  border: "var(--navy-muted)" },
-    unavailable: { bg: "var(--gray-50)", color: "var(--gray-300)",    border: "var(--gray-100)" },
+    available:   { bg: "var(--brown-deep)",  color: "var(--gold-light)",  border: "var(--brown-deep)" },
+    partial:     { bg: "var(--parchment)",    color: "var(--brown-mid)",   border: "var(--brown-light)" },
+    unavailable: { bg: "var(--cream)",    color: "var(--gray-warm)",   border: "var(--parchment)" },
   };
 
   return (
@@ -272,7 +281,7 @@ function BookingModal({ lawyer, user, onClose, onBooked }) {
                   <div style={st.legend}>
                     <div style={st.legendItem}><span style={{ ...st.legendDot, background: "var(--navy)" }} />Available</div>
                     <div style={st.legendItem}><span style={{ ...st.legendDot, background: "var(--navy-muted)", opacity: 0.5 }} />Partial</div>
-                    <div style={st.legendItem}><span style={{ ...st.legendDot, background: "var(--gray-100)" }} />Unavailable</div>
+                    <div style={st.legendItem}><span style={{ ...st.legendDot, background: "var(--parchment)", border: "1px solid var(--gray-warm)", opacity: 0.6 }} />Unavailable</div>
                   </div>
 
                   {/* Hour icons row */}
@@ -391,7 +400,7 @@ const st = {
   specialtyBadge: { background: "var(--gray-50)", color: "var(--navy-muted)", border: "1px solid var(--gray-100)" },
   bio: { fontSize: "0.875rem", color: "var(--gray-500)", lineHeight: "1.6" },
   empty: { textAlign: "center", color: "var(--gray-500)", padding: "3rem" },
-  overlay: { position: "fixed", inset: 0, background: "rgba(15,31,61,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: "1rem" },
+  overlay: { position: "fixed", inset: 0, background: "rgba(44,26,14,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: "1rem" },
   modal: { width: "100%", maxWidth: "500px", maxHeight: "92vh", overflowY: "auto" },
   modalHeader: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1.5rem 1.5rem 0" },
   modalTitle: { fontFamily: "var(--font-display)", fontSize: "1.4rem", color: "var(--navy)" },
@@ -400,7 +409,7 @@ const st = {
   lawyerSummary: { display: "flex", alignItems: "center", gap: "1rem" },
   legend: { display: "flex", gap: "1rem", marginBottom: "0.75rem", flexWrap: "wrap" },
   legendItem: { display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.75rem", color: "var(--gray-500)" },
-  legendDot: { width: "10px", height: "10px", borderRadius: "50%", display: "inline-block" },
+  legendDot: { width: "10px", height: "10px", borderRadius: "50%", display: "inline-block", flexShrink: 0 },
   hourRow: { display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.75rem" },
   hourBtn: {
     display: "flex", flexDirection: "column", alignItems: "center",
@@ -411,22 +420,23 @@ const st = {
   hourBtnTime: { fontSize: "0.85rem", fontWeight: "700", lineHeight: 1.2 },
   hourBtnCount: { fontSize: "0.65rem", marginTop: "0.2rem", opacity: 0.8 },
   expandedPanel: {
-    background: "var(--gray-50)", border: "1px solid var(--gray-100)",
+    background: "var(--cream)", border: "1px solid var(--parchment)",
     borderRadius: "var(--radius)", padding: "1rem", marginTop: "0.25rem",
     animation: "fadeUp 0.2s ease",
   },
   expandedLabel: { fontSize: "0.8rem", fontWeight: "600", color: "var(--navy)", marginBottom: "0.75rem" },
   subSlotsGrid: { display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "0.35rem" },
   subSlotBtn: {
-    padding: "0.4rem 0.2rem", border: "1.5px solid", borderRadius: "6px",
+    padding: "0.4rem 0.2rem", borderRadius: "6px",
     fontSize: "0.72rem", fontWeight: "500", fontFamily: "var(--font-body)",
     textAlign: "center", position: "relative", transition: "all 0.1s",
+    border: "1.5px solid var(--parchment)", background: "var(--white)", color: "var(--brown-deep)",
   },
-  subSlotAvail: { background: "var(--white)", color: "var(--navy)", borderColor: "var(--gray-100)", cursor: "pointer" },
-  subSlotSelected: { background: "var(--navy)", color: "var(--white)", borderColor: "var(--navy)", cursor: "pointer" },
-  subSlotUnavail: { background: "var(--gray-50)", color: "var(--gray-300)", borderColor: "var(--gray-100)", cursor: "not-allowed", textDecoration: "line-through" },
+  subSlotAvail: { background: "var(--white)", color: "var(--brown-deep)", borderColor: "var(--parchment)", cursor: "pointer" },
+  subSlotSelected: { background: "var(--brown-deep)", color: "var(--gold-light)", border: "1.5px solid var(--brown-deep)", cursor: "pointer" },
+  subSlotUnavail: { background: "transparent", color: "var(--gray-warm)", border: "1.5px solid var(--parchment)", cursor: "not-allowed", opacity: "0.35", textDecoration: "line-through" },
   blockedDot: { position: "absolute", top: "1px", right: "2px", fontSize: "0.4rem", color: "var(--error)" },
-  summary: { display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--gray-50)", borderRadius: "var(--radius)", padding: "0.75rem 1rem" },
+  summary: { display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--parchment)", borderRadius: "var(--radius)", padding: "0.75rem 1rem", border: "1px solid var(--gold-pale)" },
 };
 
 export default LawyerList;

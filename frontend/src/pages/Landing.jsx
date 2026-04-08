@@ -12,23 +12,22 @@ export default function Landing() {
   const navigate = useNavigate();
 
   return (
-    <div style={s.wrapper}>
+    <div style={s.wrapper} className="landing-wrapper">
 
       {/* ── Top contact bar ── */}
-      <div style={s.topBar}>
+      <div style={s.topBar} className="landing-top-bar">
         <span style={s.topBarText}>📍 Calle Hidalgo No 10, Edificio Muller, Despacho 206 · Acapulco, Guerrero C.P. 39300</span>
         <span style={s.topBarText}>📞 (01744) 135-5072 · ✉️ prudentetorres@hotmail.com</span>
       </div>
 
       {/* ── Header with real logo ── */}
       <header style={s.header}>
-        <div style={s.headerInner}>
-          <img
-            src="/logo-transparent.png"
-            alt="Prudente Torres & Asociados A.C."
-            style={s.logoImg}
-          />
-          <nav style={s.nav}>
+        <div style={s.headerInner} className="landing-header-inner">
+          <div style={s.headerBrand}>
+            <div style={s.headerBrandMain}>PRUDENTE TORRES &amp; ASOCIADOS A.C.</div>
+            <div style={s.headerBrandSub}>Abogados &nbsp;·&nbsp; English Spoken</div>
+          </div>
+          <nav style={s.nav} className="landing-nav">
             <a href="#servicios" style={s.navLink}>Servicios</a>
             <a href="#nosotros" style={s.navLink}>Nosotros</a>
             <a href="#contacto" style={s.navLink}>Contacto</a>
@@ -44,17 +43,15 @@ export default function Landing() {
       </header>
 
       {/* ── Hero ── */}
-      <section style={s.hero}>
+      <section style={s.hero} className="landing-hero">
         <div style={s.heroPattern} />
-        <div style={s.heroContent} className="fade-up">
-          {/* Logo repeated large in hero for impact */}
-          <img
-            src="/logo-gold.png"
-            alt="Prudente Torres & Asociados A.C."
-            style={s.heroLogo}
-          />
+        {/* Fixed centered gold logo watermark */}
+        <div style={s.watermark}>
+          <img src="/logo-gold.png" alt="" aria-hidden="true" style={s.watermarkImg} />
+        </div>
+        <div style={s.heroContent} className="fade-up landing-hero-content">
           <div style={s.heroDivider} />
-          <h1 style={s.heroTitle}>
+          <h1 style={s.heroTitle} className="landing-hero-title">
             Defensa Legal con<br />
             <em style={{ fontStyle: "italic", color: "var(--gold-light)" }}>Experiencia y Compromiso</em>
           </h1>
@@ -75,7 +72,7 @@ export default function Landing() {
         </div>
 
         {/* Right side decorative panel */}
-        <div style={s.heroRight}>
+        <div style={s.heroRight} className="landing-hero-right">
           <div style={s.heroCard}>
             <p style={s.heroCardLabel}>ÁREAS DE PRÁCTICA</p>
             <div style={s.heroCardDivider} />
@@ -93,7 +90,7 @@ export default function Landing() {
       </section>
 
       {/* ── Stats bar ── */}
-      <div style={s.statsBar}>
+      <div style={s.statsBar} className="landing-stats">
         {[
           { num: "20+", label: "Años de experiencia · Years of experience" },
           { num: "500+", label: "Casos resueltos · Cases resolved" },
@@ -108,14 +105,14 @@ export default function Landing() {
       </div>
 
       {/* ── Servicios ── */}
-      <section id="servicios" style={s.section}>
+      <section id="servicios" style={s.section} className="landing-section">
         <div style={s.sectionInner}>
           <div className="ornament fade-up" style={{ marginBottom: "1rem" }}>Asesoría Legal · Legal Advisory</div>
           <h2 style={s.sectionTitle} className="fade-up-2">Áreas de Práctica</h2>
           <p style={s.sectionSubtitle} className="fade-up-3">
             Ofrecemos representación legal especializada en las siguientes ramas del derecho mexicano.
           </p>
-          <div style={s.practiceGrid} className="fade-up-3">
+          <div style={s.practiceGrid} className="fade-up-3 landing-practice-grid">
             {PRACTICAS.map(p => (
               <div key={p.es} style={s.practiceCard}>
                 <div style={s.practiceIcon}>{p.icon}</div>
@@ -130,7 +127,7 @@ export default function Landing() {
       </section>
 
       {/* ── Nosotros ── */}
-      <section id="nosotros" style={s.sectionDark}>
+      <section id="nosotros" style={s.sectionDark} className="landing-section">
         <div style={s.sectionInner}>
           <div className="ornament fade-up" style={{ marginBottom: "1rem", color: "var(--gold-light)" }}>
             El Despacho · The Firm
@@ -138,7 +135,7 @@ export default function Landing() {
           <h2 style={{ ...s.sectionTitle, color: "var(--cream)" }} className="fade-up-2">
             Prudente Torres &amp; Asociados A.C.
           </h2>
-          <div style={s.aboutGrid} className="fade-up-3">
+          <div style={s.aboutGrid} className="fade-up-3 landing-about-grid">
             <div>
               <img src="/logo-gold.png" alt="Prudente Torres & Asociados" style={s.aboutLogo} />
               <p style={s.aboutText}>
@@ -200,14 +197,27 @@ const s = {
   },
   topBarText: { fontSize: "0.68rem", color: "var(--gray-warm)", letterSpacing: "0.04em" },
 
-  header: {
+  header: { position: "sticky", top: 0, zIndex: 100,
     background: "var(--cream)", borderBottom: "2px solid var(--gold)",
-    padding: "0 2.5rem", position: "sticky", top: 0, zIndex: 100,
+    padding: "0 2.5rem",
     boxShadow: "0 2px 16px rgba(44,26,14,0.12)",
   },
   headerInner: {
     maxWidth: "1200px", margin: "0 auto", height: "80px",
     display: "flex", alignItems: "center", justifyContent: "space-between",
+  },
+  headerBrand: { display: "flex", flexDirection: "column", gap: "2px" },
+  headerBrandMain: { fontFamily: "var(--font-display)", fontSize: "1rem", fontWeight: "700", color: "var(--brown-deep)", letterSpacing: "0.05em" },
+  headerBrandSub: { fontFamily: "var(--font-body)", fontSize: "0.6rem", fontWeight: "500", color: "var(--brown-light)", letterSpacing: "0.2em", textTransform: "uppercase" },
+  watermark: {
+    position: "fixed", top: "50%", left: "50%",
+    transform: "translate(-50%, -50%)",
+    zIndex: 1, pointerEvents: "none",
+  },
+  watermarkImg: {
+    width: "380px", height: "auto", objectFit: "contain",
+    opacity: 0.12,
+    userSelect: "none",
   },
   logoImg: {
     height: "60px", width: "auto", objectFit: "contain",
@@ -218,7 +228,7 @@ const s = {
     letterSpacing: "0.08em", textTransform: "uppercase", transition: "color 0.2s",
   },
 
-  hero: {
+  hero: { position: "relative", zIndex: 1,
     position: "relative", minHeight: "92vh",
     background: "linear-gradient(160deg, var(--brown-deep) 0%, var(--brown) 55%, var(--brown-mid) 100%)",
     display: "flex", alignItems: "center",
@@ -274,7 +284,7 @@ const s = {
   heroCardName: { fontSize: "0.88rem", fontWeight: "600", color: "var(--cream)", lineHeight: 1.2 },
   heroCardEn: { fontSize: "0.68rem", color: "var(--gold)", letterSpacing: "0.08em", marginTop: "0.1rem" },
 
-  statsBar: {
+  statsBar: { position: "relative", zIndex: 1,
     background: "var(--brown-deep)", borderTop: "1px solid rgba(184,150,46,0.4)",
     borderBottom: "2px solid var(--gold)", padding: "0 2.5rem",
     display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
@@ -287,8 +297,8 @@ const s = {
   statNum: { fontFamily: "var(--font-display)", fontSize: "2.25rem", fontWeight: "700", color: "var(--gold-light)" },
   statLabel: { fontSize: "0.65rem", color: "var(--gray-warm)", letterSpacing: "0.08em", textAlign: "center", textTransform: "uppercase" },
 
-  section: { padding: "6rem 2.5rem", background: "var(--ivory)" },
-  sectionDark: { padding: "6rem 2.5rem", background: "var(--brown-deep)" },
+  section: { padding: "6rem 2.5rem", background: "var(--ivory)", position: "relative", zIndex: 1 },
+  sectionDark: { padding: "6rem 2.5rem", background: "var(--brown-deep)", position: "relative", zIndex: 1 },
   sectionInner: { maxWidth: "1200px", margin: "0 auto" },
   sectionTitle: { fontFamily: "var(--font-display)", fontSize: "2.5rem", color: "var(--brown-deep)", marginBottom: "1rem", fontWeight: "400" },
   sectionSubtitle: { color: "var(--gray-warm)", fontSize: "0.95rem", maxWidth: "560px", marginBottom: "3rem", lineHeight: "1.8" },
@@ -322,7 +332,7 @@ const s = {
   contactIcon: { fontSize: "1rem", flexShrink: 0, marginTop: "0.1rem" },
   contactText: { fontSize: "0.85rem", color: "rgba(245,240,232,0.75)", lineHeight: "1.7" },
 
-  footer: { background: "var(--ink)", borderTop: "2px solid var(--gold)", padding: "2rem 2.5rem" },
+  footer: { background: "var(--ink)", borderTop: "2px solid var(--gold)", padding: "2rem 2.5rem", position: "relative", zIndex: 1 },
   footerInner: { maxWidth: "1200px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" },
   footerLogo: {
     height: "40px", width: "auto", objectFit: "contain",

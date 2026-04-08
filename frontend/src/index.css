@@ -269,3 +269,45 @@ input, select, textarea { font-family: var(--font-body); }
   pointer-events: none;
   border-radius: inherit;
 }
+
+/* ── Mobile responsive ── */
+@media (max-width: 768px) {
+  /* Navbar */
+  .navbar { padding: 0 1rem; height: auto; min-height: 60px; flex-wrap: wrap; gap: 0.5rem; padding-top: 0.75rem; padding-bottom: 0.75rem; }
+  .navbar-brand-main { font-size: 0.85rem; }
+  .navbar-links { gap: 0.75rem; }
+  .navbar-links a, .navbar-links button { font-size: 0.72rem; }
+
+  /* Page */
+  .page { padding: 1.5rem 1rem; }
+
+  /* Landing hero */
+  .landing-hero { flex-direction: column !important; min-height: auto !important; }
+  .landing-hero-content { padding: 2.5rem 1.5rem !important; }
+  .landing-hero-right { display: none !important; }
+  .landing-hero-title { font-size: 2.2rem !important; }
+  .landing-stats { grid-template-columns: repeat(2, 1fr) !important; }
+  .landing-header-inner { height: auto !important; padding: 0.75rem 0 !important; flex-direction: column !important; align-items: flex-start !important; gap: 0.75rem; }
+  .landing-nav { flex-wrap: wrap; gap: 0.75rem !important; }
+  .landing-top-bar { flex-direction: column !important; gap: 0.25rem; padding: 0.4rem 1rem !important; }
+  .landing-section { padding: 3rem 1.5rem !important; }
+  .landing-about-grid { grid-template-columns: 1fr !important; gap: 2rem !important; }
+  .landing-practice-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Auth */
+  .auth-wrapper { flex-direction: column !important; }
+  .auth-left { min-height: 280px !important; padding: 2rem 1.5rem !important; flex: none !important; }
+  .auth-left-title { font-size: 1.6rem !important; }
+  .auth-practice-list { display: none !important; }
+  .auth-right { width: 100% !important; padding: 1rem !important; }
+}
+
+@media (max-width: 480px) {
+  .landing-practice-grid { grid-template-columns: 1fr !important; }
+  .landing-stats { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+/* Auth left panel split layout mobile fix */
+@media (max-width: 768px) {
+  .auth-left { padding: 0 !important; }
+}

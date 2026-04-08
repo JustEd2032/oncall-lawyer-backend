@@ -51,28 +51,35 @@ export default function Auth() {
   };
 
   return (
-    <div style={s.wrapper}>
+    <div style={s.wrapper} className="auth-wrapper">
       {/* Left panel */}
-      <div style={s.left}>
+      <div style={s.left} className="auth-left">
         <div style={s.leftPattern} />
         <div style={s.leftContent}>
-          <img
-            src="/logo-gold.png"
-            alt="Prudente Torres & Asociados A.C."
-            style={s.leftLogo}
-          />
-          <div style={s.leftRule} />
-          <h2 style={s.leftTitle}>
-            Portal de Clientes<br />
-            <em style={{ fontStyle: "italic", color: "var(--gold-light)", fontWeight: "300" }}>
-              Client Portal
-            </em>
-          </h2>
-          <p style={s.leftText}>
-            Acceda para agendar consultas, gestionar sus citas y comunicarse con nuestro equipo.
-            Access to schedule consultations and manage your appointments.
-          </p>
-          <div style={s.practiceList}>
+          {/* Split: logo on far left, text on right */}
+          <div style={s.leftSplit}>
+            {/* Logo column - pushed to left edge */}
+            <div style={s.leftLogoCol}>
+              <img
+                src="/logo-gold.png"
+                alt="Prudente Torres & Asociados A.C."
+                style={s.leftLogo}
+              />
+            </div>
+            {/* Text column */}
+            <div style={s.leftTextCol}>
+              <div style={s.leftRule} />
+              <h2 style={s.leftTitle} className="auth-left-title">
+                Portal de Clientes<br />
+                <em style={{ fontStyle: "italic", color: "var(--gold-light)", fontWeight: "300" }}>
+                  Client Portal
+                </em>
+              </h2>
+              <p style={s.leftText}>
+                Acceda para agendar consultas, gestionar sus citas y comunicarse con nuestro equipo.
+                Access to schedule consultations and manage your appointments.
+              </p>
+              <div style={s.practiceList} className="auth-practice-list">
             {["Penal · Criminal", "Civil", "Familiar · Family", "Laboral · Labor", "Fiscal · Tax"].map(p => (
               <div key={p} style={s.practiceItem}>
                 <span style={s.practiceDot}>◆</span>
@@ -80,14 +87,16 @@ export default function Auth() {
               </div>
             ))}
           </div>
-          <button style={s.backBtn} onClick={() => navigate("/")}>
-            ← Regresar al inicio · Back to home
-          </button>
+              <button style={s.backBtn} onClick={() => navigate("/")}>
+                ← Regresar al inicio · Back to home
+              </button>
+            </div>{/* end leftTextCol */}
+          </div>{/* end leftSplit */}
         </div>
       </div>
 
       {/* Right panel */}
-      <div style={s.right}>
+      <div style={s.right} className="auth-right">
         <div style={s.formCard} className="fade-up">
           <div style={s.formHeader}>
             <img src="/logo-transparent.png" alt="Prudente Torres" style={s.formLogo} />
@@ -155,7 +164,7 @@ const s = {
   left: {
     flex: 1, position: "relative",
     background: "linear-gradient(155deg, var(--brown-deep) 0%, var(--brown) 60%, var(--brown-mid) 100%)",
-    display: "flex", alignItems: "center", justifyContent: "center", padding: "3rem",
+    display: "flex", alignItems: "center", justifyContent: "flex-start", padding: "0",
     overflow: "hidden",
   },
   leftPattern: {
@@ -163,12 +172,23 @@ const s = {
     backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 60px, rgba(184,150,46,0.04) 60px, rgba(184,150,46,0.04) 120px)`,
     pointerEvents: "none",
   },
-  leftContent: { position: "relative", zIndex: 1, maxWidth: "440px", width: "100%" },
-  leftLogo: {
-    height: "80px", width: "auto", objectFit: "contain", display: "block",
-    marginBottom: "1.75rem",
+  leftContent: { position: "relative", zIndex: 1, width: "100%", height: "100%", display: "flex", alignItems: "stretch" },
+  leftSplit: {
+    display: "flex", alignItems: "center", width: "100%", height: "100%",
   },
-  leftRule: { height: "1px", background: "linear-gradient(to right, var(--gold), transparent)", marginBottom: "1.75rem" },
+  leftLogoCol: {
+    width: "45%", display: "flex", alignItems: "center", justifyContent: "center",
+    padding: "3rem 1.5rem 3rem 3rem", borderRight: "1px solid rgba(184,150,46,0.2)",
+    alignSelf: "stretch",
+  },
+  leftTextCol: {
+    flex: 1, padding: "3rem 2.5rem 3rem 2rem", display: "flex",
+    flexDirection: "column", justifyContent: "center",
+  },
+  leftLogo: {
+    width: "100%", maxWidth: "220px", height: "auto", objectFit: "contain", display: "block",
+  },
+  leftRule: { height: "1px", background: "linear-gradient(to right, var(--gold), transparent)", marginBottom: "1.5rem" },
   leftTitle: { fontFamily: "var(--font-display)", fontSize: "2.25rem", fontWeight: "300", color: "var(--cream)", lineHeight: "1.2", marginBottom: "1rem" },
   leftText: { fontSize: "0.875rem", color: "rgba(245,240,232,0.62)", lineHeight: "1.85", marginBottom: "2rem", fontWeight: "300" },
   practiceList: { display: "flex", flexDirection: "column", gap: "0.6rem", marginBottom: "2.5rem" },

@@ -159,8 +159,19 @@ function LawyerDashboard() {
 
   return (
     <>
+      {/* Fixed centered gold logo watermark */}
+      <div style={{
+        position: "fixed", top: "50%", left: "50%",
+        transform: "translate(-50%, -50%)",
+        zIndex: 0, pointerEvents: "none",
+      }}>
+        <img src="/logo-gold.png" alt="" aria-hidden="true" style={{
+          width: "340px", height: "auto", objectFit: "contain",
+          opacity: 0.07, userSelect: "none",
+        }} />
+      </div>
       <Navbar user={user} />
-      <div className="page">
+      <div className="page" style={{ position: "relative", zIndex: 1 }}>
         <div className="fade-up" style={s.header}>
           <div>
             <h1 style={s.pageTitle}>Lawyer Dashboard</h1>
